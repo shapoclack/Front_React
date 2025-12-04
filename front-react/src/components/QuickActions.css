@@ -1,0 +1,36 @@
+.quick-actions {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.quick-actions__btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-actions__btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.quick-actions__btn--green {
+  background: #22c55e;
+  color: white;
+}
+
+.quick-actions__btn--gray {
+  background: #6b7280;
+  color: white;
+}
+
+.quick-actions__btn--blue {
+  background: #3b82f6;
+  color: white;
+}
