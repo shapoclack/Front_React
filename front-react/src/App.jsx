@@ -10,6 +10,9 @@ import ProgressHeader from './components/ProgressHeader.jsx';
 import Statistics from './components/Statistics.jsx';
 import QuickActions from './components/QuickActions.jsx';
 import RoadmapImporter from './components/RoadmapImporter';
+import DeadlineForm from './components/DeadlineForm';
+import BulkStatusEditor from './components/BulkStatusEditor';
+import DataExportImport from './components/DataExportImport';
 import useTechnologies from './hooks/useTechnologies.js';
 import useTechnologiesApi from './hooks/useTechnologiesApi';
 import './App.css';
@@ -20,6 +23,8 @@ function MainPage() {
   const { technologies: apiTechnologies, loading, error, refetch } = useTechnologiesApi();
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTech, setSelectedTech] = useState(null);
+  const [showDeadlineForm, setShowDeadlineForm] = useState(false);
 
   const filteredTechnologies = technologies.filter(tech => {
     const matchesFilter = filter === 'all' || tech.status === filter;
@@ -29,6 +34,37 @@ function MainPage() {
     
     return matchesFilter && matchesSearch;
   });
+
+  // Обработчик сохранения срока изучения
+  const handleSaveDeadline = (updatedTech) => {
+    setTechnologies(prev => 
+      prev.map(tech => 
+        tech.id === updatedTech.id ? updatedTech : tech
+      )
+    );
+    setShowDeadlineForm(false);
+    setSelectedTech(null);
+    alert('Срок изучения установлен!');
+  };
+
+  // Обработчик массового обновления статусов
+  const handleBulkUpdate = (techIds, newStatus) => {
+    setTechnologies(prev =>
+      prev.map(tech =>
+        techIds.includes(tech.id) ? { ...tech, status: newStatus } : tech
+      )
+    );
+  };
+
+  // Обработчик импорта данных
+  const handleImport = (importedTechnologies) => {
+    // Объединяем существующие и импортированные технологии
+    // Проверяем дубликаты по ID
+    const existingIds = technologies.map(tech => tech.id);
+    const newTechs = importedTechnologies.filter(tech => !existingIds.includes(tech.id));
+    
+    setTechnologies(prev => [...prev, ...newTechs]);
+  };
 
   return (
     <div>
@@ -42,6 +78,18 @@ function MainPage() {
 
       {/* Импорт дорожных карт */}
       <RoadmapImporter />
+
+      {/* Массовое редактирование статусов */}
+      <BulkStatusEditor 
+        technologies={technologies}
+        onUpdate={handleBulkUpdate}
+      />
+
+      {/* Экспорт и импорт данных */}
+      <DataExportImport 
+        technologies={technologies}
+        onImport={handleImport}
+      />
 
       {/* Состояния загрузки и ошибок */}
       {loading && (
@@ -99,16 +147,28 @@ function MainPage() {
 
       <div className="cards-list">
         {filteredTechnologies.map(tech => (
-          <TechnologyCard
-            key={tech.id}
-            id={tech.id}
-            title={tech.title}
-            description={tech.description}
-            status={tech.status}
-            notes={tech.notes}
-            onStatusChange={updateStatus}
-            onNotesChange={updateNotes}
-          />
+          <div key={tech.id} className="card-wrapper">
+            <TechnologyCard
+              id={tech.id}
+              title={tech.title}
+              description={tech.description}
+              status={tech.status}
+              notes={tech.notes}
+              deadline={tech.deadline}
+              priority={tech.priority}
+              onStatusChange={updateStatus}
+              onNotesChange={updateNotes}
+            />
+            <button
+              onClick={() => {
+                setSelectedTech(tech);
+                setShowDeadlineForm(true);
+              }}
+              className="btn-set-deadline"
+            >
+              📅 Установить срок
+            </button>
+          </div>
         ))}
       </div>
 
@@ -127,6 +187,18 @@ function MainPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Форма установки срока изучения */}
+      {showDeadlineForm && selectedTech && (
+        <DeadlineForm
+          technology={selectedTech}
+          onSave={handleSaveDeadline}
+          onClose={() => {
+            setShowDeadlineForm(false);
+            setSelectedTech(null);
+          }}
+        />
       )}
     </div>
   );

@@ -1,0 +1,82 @@
+.data-export-import {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid #e5e7eb;
+}
+
+.data-export-import h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #111827;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-export,
+.btn-import {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-export {
+  background: #10b981;
+  color: white;
+}
+
+.btn-export:hover:not(:disabled) {
+  background: #059669;
+}
+
+.btn-export:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-import {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-import:hover {
+  background: #2563eb;
+}
+
+.message {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.error-message {
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #991b1b;
+}
+
+.success-message {
+  background: #d1fae5;
+  border: 1px solid #10b981;
+  color: #065f46;
+}
+
+.info {
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.info p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #6b7280;
+}
