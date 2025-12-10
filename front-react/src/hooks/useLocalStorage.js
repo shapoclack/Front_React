@@ -21,10 +21,8 @@ function useLocalStorage(key, initialValue) {
     try {
       // Разрешаем value быть функцией, как в useState
       const valueToStore = value instanceof Function ? value(storedValue) : value;
-      
       // Сохраняем в состояние
       setStoredValue(valueToStore);
-      
       // Сохраняем в localStorage
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {

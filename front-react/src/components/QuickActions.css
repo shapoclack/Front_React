@@ -1,3 +1,14 @@
+.quick-actions-section {
+  margin: 20px 0;
+}
+
+.quick-actions-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
 .quick-actions {
   display: flex;
   gap: 10px;
@@ -33,4 +44,27 @@
 .quick-actions__btn--blue {
   background: #3b82f6;
   color: white;
+}
+
+.export-notification {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #ecfdf3;
+  border: 1px solid #22c55e;
+  border-radius: 6px;
+  color: #16a34a;
+  font-size: 14px;
+  font-weight: 500;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

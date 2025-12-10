@@ -3,47 +3,24 @@ import TechnologyCard from './components/TechnologyCard.jsx';
 import ProgressHeader from './components/ProgressHeader.jsx';
 import Statistics from './components/Statistics.jsx';
 import QuickActions from './components/QuickActions.jsx';
+import useTechnologies from './hooks/useTechnologies.js';
 import './App.css';
+
 function App() {
-  const [technologies, setTechnologies] = useState([
-    {
-      id: 1,
-      title: 'React Components',
-      description: 'Изучение базовых компонентов',
-      status: 'not-started',
-    },
-    {
-      id: 2,
-      title: 'JSX Syntax',
-      description: 'Освоение синтаксиса JSX',
-      status: 'not-started',
-    },
-    {
-      id: 3,
-      title: 'State Management',
-      description: 'Работа с состоянием компонентов',
-      status: 'not-started',
-    },
-    {
-      id: 4,
-      title: 'Props',
-      description: 'Передача данных между компонентами',
-      status: 'not-started',
-    },
-  ]);
-    const [filter, setFilter] = useState('all');
+  // Получаем setTechnologies из хука
+  const { technologies, setTechnologies, updateStatus, updateNotes } = useTechnologies();
 
-  const handleStatusChange = (id, newStatus) => {
-    setTechnologies(prevTechnologies =>
-      prevTechnologies.map(tech =>
-        tech.id === id ? { ...tech, status: newStatus } : tech
-      )
-    );
-  };
+  const [filter, setFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
+  // Фильтрация технологий
   const filteredTechnologies = technologies.filter(tech => {
-    if (filter === 'all') return true;
-    return tech.status === filter;
+    const matchesFilter = filter === 'all' || tech.status === filter;
+    const matchesSearch = 
+      tech.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tech.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesFilter && matchesSearch;
   });
 
   return (
@@ -51,8 +28,25 @@ function App() {
       <div className="app-container">
         <ProgressHeader technologies={technologies} />
         <Statistics technologies={technologies} />
-        <QuickActions technologies={technologies} setTechnologies={setTechnologies} />
+        
+        {/* ВАЖНО: передаём setTechnologies из хука */}
+        <QuickActions 
+          technologies={technologies} 
+          setTechnologies={setTechnologies} 
+        />
 
+        {/* Поиск */}
+        <div className="search-box">
+          <input
+            type="text"
+            placeholder="Поиск технологий..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <span>Найдено: {filteredTechnologies.length}</span>
+        </div>
+
+        {/* Фильтры */}
         <div className="filter-buttons">
           <button 
             className={filter === 'all' ? 'active' : ''} 
@@ -88,7 +82,9 @@ function App() {
               title={tech.title}
               description={tech.description}
               status={tech.status}
-              onStatusChange={handleStatusChange}
+              notes={tech.notes}
+              onStatusChange={updateStatus}
+              onNotesChange={updateNotes}
             />
           ))}
         </div>

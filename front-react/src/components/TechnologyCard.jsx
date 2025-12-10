@@ -1,7 +1,16 @@
 import React from 'react';
+import TechnologyNotes from './TechnologyNotes.jsx';
 import './TechnologyCard.css';
 
-function TechnologyCard({ title, description, status, onStatusChange, id }) {
+function TechnologyCard({ 
+  title, 
+  description, 
+  status, 
+  notes,
+  onStatusChange, 
+  onNotesChange,
+  id 
+}) {
   const getStatusLabel = () => {
     switch (status) {
       case 'completed':
@@ -45,6 +54,12 @@ function TechnologyCard({ title, description, status, onStatusChange, id }) {
           />
         </div>
       </div>
+
+      <TechnologyNotes 
+        notes={notes} 
+        onNotesChange={onNotesChange}
+        techId={id}
+      />
     </div>
   );
 }
