@@ -206,7 +206,7 @@ function MainPage() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/Front_React">
       <div className="app">
         <div className="app-container">
           <Navigation />
