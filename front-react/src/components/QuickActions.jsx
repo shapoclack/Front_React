@@ -2,83 +2,96 @@ import React, { useState } from 'react';
 import './QuickActions.css';
 
 function QuickActions({ technologies, setTechnologies }) {
-  const [showExportInfo, setShowExportInfo] = useState(false);
+  const [message, setMessage] = useState('');
 
-  const markAllCompleted = () => {
-    console.log('До обновления:', technologies);
-    setTechnologies(prevTech => {
-      const updated = prevTech.map(tech => ({ ...tech, status: 'completed' }));
-      console.log('После обновления:', updated);
-      return updated;
-    });
+  const handleCompleteAll = () => {
+    const updatedTechnologies = technologies.map(tech => ({
+      ...tech,
+      status: 'completed'
+    }));
+    setTechnologies(updatedTechnologies);
+    localStorage.setItem('technologies', JSON.stringify(updatedTechnologies));
+    showMessage('✅ Все технологии отмечены как выполненные!', 'success');
   };
 
-  const resetAll = () => {
-    if (window.confirm('Вы уверены, что хотите сбросить все статусы?')) {
-      console.log('До сброса:', technologies);
-      setTechnologies(prevTech => {
-        const updated = prevTech.map(tech => ({ ...tech, status: 'not-started' }));
-        console.log('После сброса:', updated);
-        return updated;
-      });
+  const handleResetAll = () => {
+    const updatedTechnologies = technologies.map(tech => ({
+      ...tech,
+      status: 'not-started',
+      notes: ''
+    }));
+    setTechnologies(updatedTechnologies);
+    localStorage.setItem('technologies', JSON.stringify(updatedTechnologies));
+    showMessage('🔄 Все статусы сброшены!', 'info');
+  };
+
+  const handleRandomTechnology = () => {
+    // Находим технологии, которые не завершены
+    const availableTechnologies = technologies.filter(
+      tech => tech.status === 'not-started' || tech.status === 'in-progress'
+    );
+
+    if (availableTechnologies.length === 0) {
+      showMessage('🎉 Все технологии уже изучены! Добавьте новые для продолжения.', 'warning');
+      return;
     }
+
+    // Выбираем случайную технологию из доступных
+    const randomIndex = Math.floor(Math.random() * availableTechnologies.length);
+    const randomTech = availableTechnologies[randomIndex];
+
+    // Обновляем статус на "в процессе"
+    const updatedTechnologies = technologies.map(tech =>
+      tech.id === randomTech.id
+        ? { ...tech, status: 'in-progress' }
+        : tech
+    );
+
+    setTechnologies(updatedTechnologies);
+    localStorage.setItem('technologies', JSON.stringify(updatedTechnologies));
+    showMessage(`🎲 Начинаем изучать: "${randomTech.title}"!`, 'success');
   };
 
-  const handleExport = () => {
-    const data = {
-      exportedAt: new Date().toISOString(),
-      technologies: technologies
-    };
-    
-    const dataStr = JSON.stringify(data, null, 2);
-    
-    // Скачивание файла
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `technologies-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    // Показываем информацию
-    console.log('Данные для экспорта:', dataStr);
-    setShowExportInfo(true);
-    setTimeout(() => setShowExportInfo(false), 3000);
+  const showMessage = (text, type) => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage(''), 3000);
   };
 
   return (
     <div className="quick-actions-section">
-      <h3>Быстрые действия</h3>
+      <h2>⚡ Быстрые действия</h2>
       
-      <div className="quick-actions">
-        <button 
-          className="quick-actions__btn quick-actions__btn--green" 
-          onClick={markAllCompleted}
+      {message && (
+        <div className={`quick-action-message ${message.type}`}>
+          {message.text}
+        </div>
+      )}
+
+      <div className="quick-actions-buttons">
+        <button
+          onClick={handleRandomTechnology}
+          className="quick-action-btn random"
+          title="Выбрать случайную технологию для изучения"
+        >
+          🎲 Случайная технология
+        </button>
+
+        <button
+          onClick={handleCompleteAll}
+          className="quick-action-btn complete-all"
+          title="Отметить все технологии как выполненные"
         >
           ✓ Отметить все как выполненные
         </button>
-        <button 
-          className="quick-actions__btn quick-actions__btn--gray" 
-          onClick={resetAll}
+
+        <button
+          onClick={handleResetAll}
+          className="quick-action-btn reset-all"
+          title="Сбросить все статусы"
         >
           ↻ Сбросить все статусы
         </button>
-        <button 
-          className="quick-actions__btn quick-actions__btn--blue" 
-          onClick={handleExport}
-        >
-          📥 Экспорт данных
-        </button>
       </div>
-
-      {showExportInfo && (
-        <div className="export-notification">
-          ✓ Данные успешно экспортированы!
-        </div>
-      )}
     </div>
   );
 }

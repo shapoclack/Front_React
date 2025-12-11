@@ -5,19 +5,25 @@ import Home from './pages/Home';
 import TechnologyList from './pages/TechnologyList';
 import TechnologyDetail from './pages/TechnologyDetail';
 import AddTechnology from './pages/AddTechnology';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
+import ProtectedRoute from './components/ProtectedRoute';
 import TechnologyCard from './components/TechnologyCard.jsx';
 import ProgressHeader from './components/ProgressHeader.jsx';
 import Statistics from './components/Statistics.jsx';
 import QuickActions from './components/QuickActions.jsx';
+import SearchBox from './components/SearchBox';
 import RoadmapImporter from './components/RoadmapImporter';
 import DeadlineForm from './components/DeadlineForm';
 import BulkStatusEditor from './components/BulkStatusEditor';
 import DataExportImport from './components/DataExportImport';
 import useTechnologies from './hooks/useTechnologies.js';
 import useTechnologiesApi from './hooks/useTechnologiesApi';
+import useDebounce from './hooks/useDebounce';
 import './App.css';
 
-// Главная страница (встроенная версия)
+// Главная страница
 function MainPage() {
   const { technologies, setTechnologies, updateStatus, updateNotes } = useTechnologies();
   const { technologies: apiTechnologies, loading, error, refetch } = useTechnologiesApi();
@@ -26,16 +32,18 @@ function MainPage() {
   const [selectedTech, setSelectedTech] = useState(null);
   const [showDeadlineForm, setShowDeadlineForm] = useState(false);
 
+  // Добавляем debounce для оптимизации поиска
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
   const filteredTechnologies = technologies.filter(tech => {
     const matchesFilter = filter === 'all' || tech.status === filter;
     const matchesSearch = 
-      tech.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tech.description.toLowerCase().includes(searchQuery.toLowerCase());
+      tech.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+      tech.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
     
     return matchesFilter && matchesSearch;
   });
 
-  // Обработчик сохранения срока изучения
   const handleSaveDeadline = (updatedTech) => {
     setTechnologies(prev => 
       prev.map(tech => 
@@ -44,10 +52,8 @@ function MainPage() {
     );
     setShowDeadlineForm(false);
     setSelectedTech(null);
-    alert('Срок изучения установлен!');
   };
 
-  // Обработчик массового обновления статусов
   const handleBulkUpdate = (techIds, newStatus) => {
     setTechnologies(prev =>
       prev.map(tech =>
@@ -56,18 +62,14 @@ function MainPage() {
     );
   };
 
-  // Обработчик импорта данных
   const handleImport = (importedTechnologies) => {
-    // Объединяем существующие и импортированные технологии
-    // Проверяем дубликаты по ID
     const existingIds = technologies.map(tech => tech.id);
     const newTechs = importedTechnologies.filter(tech => !existingIds.includes(tech.id));
-    
     setTechnologies(prev => [...prev, ...newTechs]);
   };
 
   return (
-    <div>
+    <div className="main-page-content">
       <ProgressHeader technologies={technologies} />
       <Statistics technologies={technologies} />
       
@@ -76,22 +78,16 @@ function MainPage() {
         setTechnologies={setTechnologies} 
       />
 
-      {/* Импорт дорожных карт */}
       <RoadmapImporter />
-
-      {/* Массовое редактирование статусов */}
       <BulkStatusEditor 
         technologies={technologies}
         onUpdate={handleBulkUpdate}
       />
-
-      {/* Экспорт и импорт данных */}
       <DataExportImport 
         technologies={technologies}
         onImport={handleImport}
       />
 
-      {/* Состояния загрузки и ошибок */}
       {loading && (
         <div className="app-loading">
           <div className="spinner"></div>
@@ -106,18 +102,12 @@ function MainPage() {
         </div>
       )}
 
-      {/* Поиск */}
-      <div className="search-box">
-        <input
-          type="text"
-          placeholder="Поиск технологий..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <span>Найдено: {filteredTechnologies.length}</span>
-      </div>
+      {/* Поиск с debounce */}
+      <SearchBox 
+        onSearch={setSearchQuery}
+        resultsCount={filteredTechnologies.length}
+      />
 
-      {/* Фильтры */}
       <div className="filter-buttons">
         <button 
           className={filter === 'all' ? 'active' : ''} 
@@ -172,7 +162,15 @@ function MainPage() {
         ))}
       </div>
 
-      {/* Показываем технологии из API (если есть) */}
+      {filteredTechnologies.length === 0 && debouncedSearchQuery && (
+        <div className="no-results">
+          <p>😔 Ничего не найдено по запросу "{debouncedSearchQuery}"</p>
+          <button onClick={() => setSearchQuery('')} className="btn-clear-search">
+            Очистить поиск
+          </button>
+        </div>
+      )}
+
       {!loading && apiTechnologies.length > 0 && (
         <div className="api-technologies">
           <h2>Технологии из API</h2>
@@ -189,7 +187,6 @@ function MainPage() {
         </div>
       )}
 
-      {/* Форма установки срока изучения */}
       {showDeadlineForm && selectedTech && (
         <DeadlineForm
           technology={selectedTech}
@@ -206,17 +203,47 @@ function MainPage() {
 
 function App() {
   return (
-    <BrowserRouter basename="/Front_React">
+    <BrowserRouter>
       <div className="app">
+        <Navigation />
+        
         <div className="app-container">
-          <Navigation />
-          
           <Routes>
-            <Route path="/" element={<MainPage />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/technologies" element={<TechnologyList />} />
-            <Route path="/technology/:techId" element={<TechnologyDetail />} />
-            <Route path="/add-technology" element={<AddTechnology />} />
+            {/* Публичные маршруты */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+
+            {/* Защищенные маршруты */}
+            <Route path="/" element={
+              <ProtectedRoute>
+                <MainPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/home" element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            } />
+            <Route path="/technologies" element={
+              <ProtectedRoute>
+                <TechnologyList />
+              </ProtectedRoute>
+            } />
+            <Route path="/technology/:techId" element={
+              <ProtectedRoute>
+                <TechnologyDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/add-technology" element={
+              <ProtectedRoute>
+                <AddTechnology />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
           </Routes>
         </div>
       </div>

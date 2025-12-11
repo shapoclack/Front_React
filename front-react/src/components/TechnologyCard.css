@@ -152,3 +152,27 @@
 .status-not-started { border-left-color: #ff6b6b; }
 .status-in-progress { border-left-color: #4ecdc4; }
 .status-completed { border-left-color: #45b7d1; }
+/* Темная тема для карточек */
+body.dark-theme .technology-card {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+body.dark-theme .technology-card h3 {
+  color: #f1f5f9;
+}
+
+body.dark-theme .technology-card p {
+  color: #94a3b8;
+}
+
+body.dark-theme .card-status-badge {
+  color: #f1f5f9;
+}
+
+body.dark-theme .card-notes {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}

@@ -1,134 +1,108 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import MenuIcon from '@mui/icons-material/Menu';
-import Box from '@mui/material/Box';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
+import { useAuth } from '../context/AuthContext';
 import ThemeToggle from './ThemeToggle';
+import './Navigation.css';
 
 function Navigation() {
   const location = useLocation();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { user } = useAuth();
 
   const menuItems = [
-    { path: '/', label: 'Главная' },
-    { path: '/technologies', label: 'Все технологии' },
-    { path: '/add-technology', label: 'Добавить' }
+    { path: '/', label: 'ГЛАВНАЯ' },
+    { path: '/technologies', label: 'ВСЕ ТЕХНОЛОГИИ' },
+    { path: '/add-technology', label: 'ДОБАВИТЬ' }
   ];
 
-  const toggleDrawer = (open) => (event) => {
-    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-      return;
-    }
-    setDrawerOpen(open);
+  const toggleDrawer = () => {
+    setDrawerOpen(!drawerOpen);
   };
 
-  // Мобильное меню
-  const drawer = (
-    <Box
-      sx={{ width: 250 }}
-      role="presentation"
-      onClick={toggleDrawer(false)}
-      onKeyDown={toggleDrawer(false)}
-    >
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.path} disablePadding>
-            <ListItemButton
-              component={Link}
-              to={item.path}
-              selected={location.pathname === item.path}
-            >
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-    </Box>
-  );
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+  };
 
   return (
     <>
-      <AppBar 
-        position="sticky" 
-        elevation={2}
-        sx={{
-          backgroundColor: theme.palette.mode === 'dark' 
-            ? theme.palette.background.paper 
-            : theme.palette.primary.main
-        }}
-      >
-        <Toolbar>
-          {isMobile && (
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={toggleDrawer(true)}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
-
-          <Typography
-            variant="h6"
-            component={Link}
-            to="/"
-            sx={{
-              flexGrow: 1,
-              textDecoration: 'none',
-              color: 'inherit',
-              fontWeight: 700
-            }}
+      <nav className="navigation">
+        <div className="nav-container">
+          <button 
+            className="nav-menu-btn"
+            onClick={toggleDrawer}
+            aria-label="открыть меню"
           >
-            🚀 Трекер технологий
-          </Typography>
+            ☰
+          </button>
 
-          {!isMobile && (
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              {menuItems.map((item) => (
-                <Button
-                  key={item.path}
-                  component={Link}
-                  to={item.path}
-                  color="inherit"
-                  sx={{
-                    fontWeight: location.pathname === item.path ? 600 : 400,
-                    borderBottom: location.pathname === item.path 
-                      ? '2px solid white' 
-                      : '2px solid transparent'
-                  }}
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </Box>
-          )}
+          <Link to="/" className="nav-logo">
+            🚀 Трекер технологий
+          </Link>
+
+          <div className="nav-menu">
+            {menuItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            {user && (
+              <Link
+                to="/profile"
+                className={`nav-link ${location.pathname === '/profile' ? 'active' : ''}`}
+              >
+                👤 {user.name}
+              </Link>
+            )}
+          </div>
 
           <ThemeToggle />
-        </Toolbar>
-      </AppBar>
+        </div>
+      </nav>
 
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={toggleDrawer(false)}
-      >
-        {drawer}
-      </Drawer>
+      {/* Мобильное меню */}
+      {drawerOpen && (
+        <>
+          <div className="drawer-overlay" onClick={closeDrawer}></div>
+          <div className="drawer">
+            <div className="drawer-header">
+              <h2>Меню</h2>
+              <button 
+                className="drawer-close-btn"
+                onClick={closeDrawer}
+                aria-label="закрыть меню"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="drawer-content">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`drawer-link ${location.pathname === item.path ? 'active' : ''}`}
+                  onClick={closeDrawer}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              {user && (
+                <Link
+                  to="/profile"
+                  className={`drawer-link ${location.pathname === '/profile' ? 'active' : ''}`}
+                  onClick={closeDrawer}
+                >
+                  👤 Профиль ({user.name})
+                </Link>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
